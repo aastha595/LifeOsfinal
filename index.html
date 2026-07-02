@@ -586,9 +586,11 @@ function showToast(){
 }
 let persistTimer=null;
 function persist(){
-  showToast();
   clearTimeout(persistTimer);
-  persistTimer=setTimeout(()=>saveState(),300);
+  persistTimer=setTimeout(function(){saveState();},300);
+  // Show saved indicator
+  var ind=document.getElementById("saveIndicator");
+  if(ind){ind.style.opacity="1";setTimeout(function(){ind.style.opacity="0";},1000);}
 }
 
 // --- CLOCK ---
@@ -611,37 +613,64 @@ function toggleGroup(id){
   buildTabBar();
 }
 function buildTabBar(){
-  const box=document.getElementById("menuItems");
+  var box=document.getElementById("menuItems");
   if(!box)return;
-  let html="";
-  MENU_GROUPS.forEach(group=>{
-    const isOpen=state.openGroups[group.id];
-    const hasActive=group.items.some(i=>i.id===state.currentTab);
-    html+=`<div>
-      <button onclick="toggleGroup('${group.id}')" style="display:flex;align-items:center;gap:12px;width:100%;padding:12px 20px;background:${hasActive?"rgba(124,58,237,0.08)":"transparent"};border:none;cursor:pointer;transition:all 0.2s">
-        <div style="width:34px;height:34px;border-radius:11px;background:${hasActive?"linear-gradient(135deg,var(--primary-dark),var(--primary))":"var(--surface3)"};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${group.icon}</div>
-        <span style="font-size:13px;font-weight:700;color:${hasActive?"var(--primary-light)":"var(--text2)"};letter-spacing:0.3px;flex:1;text-align:left">${group.label}</span>
-        <span style="font-size:12px;color:var(--text3);transition:transform 0.2s;display:inline-block;transform:rotate(${isOpen?90:0}deg)">›</span>
-      </button>
-      ${isOpen?`<div style="padding-left:16px;margin-bottom:4px">
-        ${group.items.map(t=>{
-          const active=state.currentTab===t.id;
-          return `<button onclick="switchTab('${t.id}')" style="display:flex;align-items:center;gap:12px;width:100%;padding:10px 20px;background:${active?"linear-gradient(135deg,rgba(124,58,237,0.2),rgba(167,139,250,0.1))":"transparent"};border:none;border-left:2px solid ${active?"var(--primary)":"var(--border)"};cursor:pointer;transition:all 0.2s;text-align:left">
-            <div style="width:32px;height:32px;border-radius:10px;background:${active?"linear-gradient(135deg,var(--primary-dark),var(--primary))":"var(--surface2)"};display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">${t.icon}</div>
-            <span style="font-size:13px;font-weight:${active?700:400};color:${active?"var(--primary-light)":"var(--text)"}">${t.label}</span>
-            ${active?'<div style="margin-left:auto;width:6px;height:6px;border-radius:3px;background:var(--primary);box-shadow:0 0 6px var(--primary)"></div>':''}
-          </button>`;
-        }).join("")}
-      </div>`:""}
-    </div>`;
+  var html="";
+  MENU_GROUPS.forEach(function(group){
+    var isOpen=state.openGroups[group.id];
+    var hasActive=group.items.some(function(i){return i.id===state.currentTab;});
+    var grpBg=hasActive?"rgba(124,58,237,0.08)":"transparent";
+    var grpIconBg=hasActive?"linear-gradient(135deg,var(--primary-dark),var(--primary))":"var(--surface3)";
+    var grpColor=hasActive?"var(--primary-light)":"var(--text2)";
+    var arrowRot=isOpen?"90":"0";
+    html+='<div>';
+    html+='<button data-gid="'+group.id+'" onclick="toggleGroup(this.dataset.gid)" style="display:flex;align-items:center;gap:12px;width:100%;padding:12px 20px;background:'+grpBg+';border:none;cursor:pointer">';
+    html+='<div style="width:34px;height:34px;border-radius:11px;background:'+grpIconBg+';display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">'+group.icon+'</div>';
+    html+='<span style="font-size:13px;font-weight:700;color:'+grpColor+';flex:1;text-align:left">'+group.label+'</span>';
+    html+='<span style="font-size:12px;color:var(--text3);display:inline-block;transform:rotate('+arrowRot+'deg)">›</span>';
+    html+='</button>';
+    if(isOpen){
+      html+='<div style="padding-left:16px;margin-bottom:4px">';
+      group.items.forEach(function(t){
+        var active=state.currentTab===t.id;
+        var itemBg=active?"linear-gradient(135deg,rgba(124,58,237,0.2),rgba(167,139,250,0.1))":"transparent";
+        var borderColor=active?"var(--primary)":"var(--border)";
+        var iconBg=active?"linear-gradient(135deg,var(--primary-dark),var(--primary))":"var(--surface2)";
+        var labelColor=active?"var(--primary-light)":"var(--text)";
+        var fontWeight=active?"700":"400";
+        html+='<button data-tid="'+t.id+'" onclick="switchTab(this.dataset.tid)" style="display:flex;align-items:center;gap:12px;width:100%;padding:10px 20px;background:'+itemBg+';border:none;border-left:2px solid '+borderColor+';cursor:pointer;text-align:left">';
+        html+='<div style="width:32px;height:32px;border-radius:10px;background:'+iconBg+';display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">'+t.icon+'</div>';
+        html+='<span style="font-size:13px;font-weight:'+fontWeight+';color:'+labelColor+'">'+t.label+'</span>';
+        if(active)html+='<div style="margin-left:auto;width:6px;height:6px;border-radius:3px;background:var(--primary)"></div>';
+        html+='</button>';
+      });
+      html+='</div>';
+    }
+    html+='</div>';
   });
+  html+='<div style="padding:16px;border-top:1px solid var(--border);margin-top:8px">';
+  html+='<div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">BACKUP</div>';
+  html+='<div style="display:flex;gap:8px">';
+  html+='<button onclick="exportData()" style="flex:1;padding:10px 0;border-radius:10px;border:none;background:rgba(52,211,153,0.15);color:var(--green);font-size:12px;font-weight:700;cursor:pointer">📤 Export</button>';
+  html+='<button onclick="importData()" style="flex:1;padding:10px 0;border-radius:10px;border:none;background:rgba(167,139,250,0.15);color:var(--primary-light);font-size:12px;font-weight:700;cursor:pointer">📥 Import</button>';
+  html+='</div></div>';
   box.innerHTML=html;
 }
+
+
 function switchTab(id){
   refreshToday();
-  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-  const sec=document.getElementById("sec-"+id);
+  document.querySelectorAll(".section").forEach(function(s){s.classList.remove("active");});
+  var sec=document.getElementById("sec-"+id);
   if(sec)sec.classList.add("active");
+  // Clear content so renderAll always re-renders fresh on tab switch
+  var contentIds=["dashboardContent","financeContent","habitsContent","sleepContent","mindsetContent",
+    "gratitudeStandaloneContent","goalsContent","bookList","journalContent",
+    "beautyContent","moodChartContent"];
+  contentIds.forEach(function(cid){
+    var el=document.getElementById(cid);
+    if(el&&id!==state.currentTab)el.innerHTML="";
+  });
   state.currentTab=id;
   buildTabBar();
   closeMenu();
@@ -3612,27 +3641,89 @@ function weekGoalPrev(){var wk=state.goalsWeek||getWeekKey(new Date());var d=new
 function weekGoalNext(){var wk=state.goalsWeek||getWeekKey(new Date());var d=new Date(wk.split("-W")[0],0,1+(parseInt(wk.split("-W")[1])-1)*7+7);state.goalsWeek=getWeekKey(d);renderGoalsUnified();}
 
 
+
+// ================================================================
+// EXPORT / IMPORT DATA
+// ================================================================
+function exportData(){
+  try{
+    var data=JSON.stringify(state);
+    // Try download approach
+    try{
+      var blob=new Blob([data],{type:"application/json"});
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement("a");
+      a.href=url;
+      a.download="lifeos_backup_"+today+".json";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},100);
+      alert("✅ Exported! Save the lifeos_backup file safely.\nImport it anytime to restore your data.");
+    }catch(e2){
+      // Fallback: show data as text to copy
+      var box=document.createElement("textarea");
+      box.value=data;
+      box.style.cssText="position:fixed;top:10px;left:10px;right:10px;bottom:10px;z-index:9999;font-size:10px;padding:10px";
+      document.body.appendChild(box);
+      box.select();
+      alert("Copy ALL this text and save it somewhere. Then press OK to close.");
+      document.body.removeChild(box);
+    }
+  }catch(e){
+    alert("Export failed: "+e.message);
+  }
+}
+function importData(){
+  var inp=document.createElement("input");
+  inp.type="file";
+  inp.accept=".json";
+  inp.onchange=function(e){
+    var file=e.target.files[0];
+    if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      try{
+        var imported=JSON.parse(ev.target.result);
+        if(!imported||typeof imported!=="object"){alert("Invalid file!");return;}
+        state=Object.assign({},state,imported);
+        saveState();
+        renderAll();
+        closeMenu();
+        alert("Data imported successfully! ✅");
+      }catch(err){
+        alert("Import failed: "+err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+  inp.click();
+}
 // --- RENDER ALL ---
 function renderAll(){
   refreshToday();
   renderStats();
-  const t=state.currentTab;
+  var t=state.currentTab;
+  // Helper: only re-render if box is empty (protects mid-entry forms)
+  function safeRender(boxId, fn){
+    var b=document.getElementById(boxId);
+    if(!b||b.innerHTML==="")fn();
+  }
   if(t==="Dashboard")renderDashboard();
   else if(t==="Tasks")renderTasks();
   else if(t==="Eating"){renderWater();renderEating();}
   else if(t==="Workout")renderWorkout();
-  else if(t==="Reading")renderBooks();
-  else if(t==="Beauty")renderBeauty();
-  else if(t==="Journal")renderJournal();
+  else if(t==="Beauty")safeRender("beautyContent",renderBeauty);
+  else if(t==="Reading")safeRender("bookList",renderBooks);
+  else if(t==="Journal")safeRender("journalContent",renderJournal);
   else if(t==="Schedule")renderSchedule();
   else if(t==="Records")renderRecords();
-  else if(t==="Goals")renderGoalsUnified();
-  else if(t==="Mindset")renderMindset();
-  else if(t==="Gratitude")renderGratitudeStandalone();
-  else if(t==="Habits")renderHabits();
-  else if(t==="Sleep")renderSleep();
-  else if(t==="Finance")renderFinance();
-  else if(t==="MoodChart")renderMoodChart();
+  else if(t==="Goals")safeRender("goalsContent",renderGoalsUnified);
+  else if(t==="Mindset")safeRender("mindsetContent",renderMindset);
+  else if(t==="Gratitude")safeRender("gratitudeStandaloneContent",renderGratitudeStandalone);
+  else if(t==="Habits")safeRender("habitsContent",renderHabits);
+  else if(t==="Sleep")safeRender("sleepContent",renderSleep);
+  else if(t==="Finance")safeRender("financeContent",renderFinance);
+  else if(t==="MoodChart")safeRender("moodChartContent",renderMoodChart);
 }
 
 // --- INIT ---
@@ -3641,7 +3732,15 @@ try {
 setInterval(function(){
   var prev=today;
   refreshToday();
-  if(prev!==today){ renderAll(); }
+  if(prev!==today){
+    // New day - clear dashboard and re-render
+    var db=document.getElementById("dashboardContent");
+    if(db)db.innerHTML="";
+    renderAll();
+  } else if(state.currentTab==="Dashboard"){
+    // Refresh dashboard every minute even same day
+    renderDashboard();
+  }
 },60000);
   if(!state.habits)state.habits=[];
   if(!state.habitLogs)state.habitLogs={};
