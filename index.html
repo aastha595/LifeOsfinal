@@ -49,27 +49,34 @@
     <div id="dashboardContent"></div>
   </div>
 
-  <!-- TASKS -->
+  <!-- MY DAY -->
   <div id="sec-Tasks" class="section">
-    <div class="card" style="margin-bottom:14px">
-      <div style="display:flex;gap:8px;margin-bottom:12px">
-        <input id="newTask" class="input" placeholder="What needs to get done?" style="flex:1" onkeydown="if(event.key==='Enter')addTask()">
-        <button class="btn" onclick="addTask()" style="font-size:24px">+</button>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:15px;font-weight:700;color:var(--text)">📋 My Day</div>
+        <div id="todayDateLabel" style="font-size:11px;color:var(--text3)"></div>
       </div>
-      <div style="display:flex;gap:6px;margin-bottom:12px">
-        <button onclick="document.getElementById('taskPriority').value='high'" style="flex:1;padding:7px 0;border-radius:10px;border:1.5px solid rgba(255,71,87,0.3);background:rgba(255,71,87,0.1);color:var(--red);font-size:12px;font-weight:600">🔴 High</button>
-        <button onclick="document.getElementById('taskPriority').value='medium'" style="flex:1;padding:7px 0;border-radius:10px;border:1.5px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.1);color:var(--orange);font-size:12px;font-weight:600">🟡 Medium</button>
-        <button onclick="document.getElementById('taskPriority').value='low'" style="flex:1;padding:7px 0;border-radius:10px;border:1.5px solid rgba(52,211,153,0.3);background:rgba(52,211,153,0.1);color:var(--green);font-size:12px;font-weight:600">🟢 Low</button>
-        <select id="taskPriority" style="display:none"><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select>
+      <input id="taskInput" class="input" placeholder="Add to my day..." onkeydown="if(event.key==='Enter')addTask()" style="margin-bottom:8px">
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <div style="flex:1">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:4px;font-weight:600">TIME (optional)</div>
+          <input id="taskTime" class="input" type="time" style="width:100%;padding:8px 10px;font-size:13px">
+        </div>
+        <div style="flex:1">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:4px;font-weight:600">PRIORITY</div>
+          <select id="taskPriority" style="width:100%;padding:8px 10px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px">
+            <option value="high">🔴 High</option>
+            <option value="medium">🟡 Medium</option>
+            <option value="low">🟢 Low</option>
+          </select>
+        </div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span style="font-size:12px;font-weight:600;color:var(--text2)" id="taskProgressLabel">0% complete</span>
-      </div>
-      <div class="progress-bar" style="height:6px"><div id="taskProgress" class="progress-fill" style="background:linear-gradient(90deg,var(--primary),var(--primary-light));width:0%"></div></div>
+      <button onclick="addTask()" class="btn-wide">+ Add to My Day</button>
     </div>
     <div id="taskList"></div>
     <div id="taskCharts"></div>
   </div>
+
 
   <!-- EATING -->
   <div id="sec-Eating" class="section">
@@ -218,9 +225,6 @@
     <div id="beautyHistory"></div>
   </div>
 
-  <!-- JOURNAL -->
-  <div id="sec-Journal" class="section">
-    <div class="card" id="journalCal"></div>
     <div class="card">
       <div style="font-size:13px;color:var(--text2);margin-bottom:8px">How are you feeling today?</div>
       <div id="moodPicker" style="display:flex;gap:8px;margin-bottom:12px"></div>
@@ -230,13 +234,6 @@
     <div id="journalList"></div>
   </div>
 
-  <!-- SCHEDULE -->
-  <div id="sec-Schedule" class="section">
-    <div style="display:flex;gap:8px;margin-bottom:14px">
-      <input id="evTime" type="time" class="input" value="08:00" style="width:88px">
-      <input id="evTitle" class="input" placeholder="Event name..." style="flex:1" onkeydown="if(event.key==='Enter')addEvent()">
-      <button class="btn" onclick="addEvent()">+</button>
-    </div>
     <div id="scheduleList"></div>
   </div>
 
@@ -258,9 +255,6 @@
     <div id="mindsetContent"></div>
   </div>
 
-  <!-- GRATITUDE STANDALONE -->
-  <div id="sec-Gratitude" class="section">
-    <div id="gratitudeStandaloneContent"></div>
   </div>
 
   <!-- HABITS -->
@@ -311,16 +305,13 @@
 <script>
 const TABS=[
   {id:"Dashboard",icon:"🏠",label:"Dashboard"},
-  {id:"Tasks",icon:"✅",label:"Tasks"},
+  {id:"Tasks",icon:"📋",label:"My Day"},
   {id:"Eating",icon:"🍽️",label:"Eating"},
   {id:"Workout",icon:"💪",label:"Workout"},
   {id:"Beauty",icon:"✨",label:"Beauty"},
-  {id:"Journal",icon:"📔",label:"Journal"},
-  {id:"Schedule",icon:"🗓",label:"Schedule"},
   {id:"Reading",icon:"📚",label:"Reading"},
   {id:"Records",icon:"📊",label:"Records"},
   {id:"Goals",icon:"🎯",label:"Goals"},
-  {id:"Gratitude",icon:"🙏",label:"Gratitude"},
   {id:"Mindset",icon:"🧠",label:"Mindset"},
   {id:"Habits",icon:"🔥",label:"Habits"},
   {id:"Sleep",icon:"😴",label:"Sleep"},
@@ -344,11 +335,8 @@ const MENU_GROUPS=[
   {
     id:"life",label:"✅ Life",icon:"✅",
     items:[
-      {id:"Tasks",icon:"✅",label:"Tasks"},
-      {id:"Journal",icon:"📔",label:"Journal"},
-      {id:"Schedule",icon:"🗓",label:"Schedule"},
-      {id:"Gratitude",icon:"🙏",label:"Gratitude"},
-  {id:"Mindset",icon:"🧠",label:"Mindset"},
+      {id:"Tasks",icon:"📋",label:"My Day"},
+              {id:"Mindset",icon:"🧠",label:"Mindset"},
     ]
   },
   {
@@ -367,8 +355,7 @@ const MENU_GROUPS=[
     id:"mindset",label:"🧠 Mindset",icon:"🧠",
     items:[
       {id:"Mindset",icon:"🧠",label:"Positive Content"},
-      {id:"Gratitude",icon:"🙏",label:"Gratitude"},
-    ]
+        ]
   },
   {
     id:"wellness",label:"🌿 Wellness",icon:"🌿",
@@ -715,30 +702,96 @@ function renderStats(){if(state.currentTab==="Dashboard"){renderDashboard();retu
 
 // --- TASKS ---
 function renderTasks(){
-  const tasks=state.tasks;
-  const done=tasks.filter(t=>t.done).length;
-  const pct=tasks.length?Math.round(done/tasks.length*100):0;
-  document.getElementById("taskProgress").style.width=pct+"%";
-  const tpl=document.getElementById("taskProgressLabel");if(tpl)tpl.textContent=pct+"% complete · "+done+" of "+tasks.length+" done";
-  const list=document.getElementById("taskList");
-  if(!tasks.length){list.innerHTML='<div class="empty"><div class="icon">✅</div><div>No tasks yet!</div></div>';return;}
-  list.innerHTML=tasks.map(t=>`
-    <div class="task-item" style="border-left:4px solid ${PRIORITIES[t.priority]};opacity:${t.done?0.5:1}">
-      <button class="check-btn${t.done?" done":""}" onclick="toggleTask(${t.id})">${t.done?"✓":""}</button>
-      <span style="flex:1;font-size:14px;color:var(--text);text-decoration:${t.done?"line-through":"none"}">${t.text}</span>
-      <button class="del-btn" onclick="deleteTask(${t.id})">×</button>
-    </div>`).join("");
+  var list=document.getElementById("taskList");
+  if(!list)return;
+  var tasks=state.tasks||[];
+  var done=tasks.filter(function(t){return t.done;}).length;
+  var taskPct=tasks.length?Math.round(done/tasks.length*100):0;
+  var todayLabel=document.getElementById("todayDateLabel");
+  if(todayLabel)todayLabel.textContent=new Date().toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"});
+
+  var slots=["morning","afternoon","evening",""];
+  var slotLabels={"morning":"☀️ Morning","afternoon":"🌤 Afternoon","evening":"🌙 Evening","":"📌 Anytime"};
+  var html="";
+  var total=tasks.length;
+  if(!total){
+    list.innerHTML='<div class="empty"><div class="icon">📋</div><div>Your day is clear!<br>Add something above.</div></div>';
+    return;
+  }
+
+  // Progress bar
+  html+='<div style="background:var(--surface);border-radius:14px;padding:12px 16px;margin-bottom:12px;border:1px solid var(--border)">';
+  html+='<div style="display:flex;justify-content:space-between;margin-bottom:6px">';
+  html+='<span style="font-size:13px;font-weight:600;color:var(--text)">'+done+'/'+total+' done</span>';
+  html+='<span style="font-size:13px;font-weight:700;color:'+(taskPct>=100?"var(--green)":"var(--primary)")+'">'+taskPct+'%</span>';
+  html+='</div>';
+  html+='<div style="background:var(--surface2);border-radius:30px;height:6px"><div style="width:'+taskPct+'%;background:'+(taskPct>=100?"var(--green)":"var(--primary)")+';height:6px;border-radius:30px;transition:width 0.4s"></div></div>';
+  html+='</div>';
+
+  var PCOLORS={"high":"var(--red)","medium":"var(--orange)","low":"var(--green)"};
+
+  // Sort tasks: by time if set, then by slot
+  function timeToMins(t){ if(!t)return 9999; var p=t.split(":"); return parseInt(p[0])*60+parseInt(p[1]); }
+  
+  slots.forEach(function(slot){
+    var slotTasks=tasks.filter(function(t){return (t.slot||"")=== slot;});
+    if(!slotTasks.length)return;
+    // Sort by time within slot
+    slotTasks.sort(function(a,b){return timeToMins(a.time)-timeToMins(b.time);});
+    html+='<div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin:12px 0 8px">'+slotLabels[slot]+'</div>';
+    slotTasks.forEach(function(t){
+      var pc=PCOLORS[t.priority]||"var(--border)";
+      html+='<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--surface);border-radius:14px;margin-bottom:6px;border:1px solid var(--border);border-left:3px solid '+pc+';opacity:'+(t.done?0.5:1)+'">';
+      html+='<button data-tid="'+t.id+'" onclick="toggleTask(this.dataset.tid)" style="width:24px;height:24px;border-radius:7px;border:2px solid '+(t.done?"var(--green)":"var(--border)")+';background:'+(t.done?"var(--green)":"transparent")+';color:#fff;font-size:12px;cursor:pointer;flex-shrink:0">'+(t.done?"✓":"")+'</button>';
+      html+='<div style="flex:1;min-width:0">';
+      if(t.time)html+='<div style="font-size:11px;color:var(--primary-light);font-weight:700;margin-bottom:2px">🕐 '+t.time+'</div>';
+      html+='<div style="font-size:14px;font-weight:500;color:var(--text);text-decoration:'+(t.done?"line-through":"none")+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+t.text+'</div>';
+      html+='</div>';
+      html+='<button data-tid="'+t.id+'" onclick="deleteTask(this.dataset.tid)" style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;flex-shrink:0">×</button>';
+      html+='</div>';
+    });
+  });
+
+  list.innerHTML=html;
+
+  // Charts
+  var chartBox=document.getElementById("taskCharts");
+  if(!chartBox)return;
+  var high=tasks.filter(function(t){return t.priority==="high";});
+  var med=tasks.filter(function(t){return t.priority==="medium";});
+  var low=tasks.filter(function(t){return t.priority==="low";});
+  if(!tasks.length){chartBox.innerHTML="";return;}
+  var ch='<div style="background:var(--surface);border-radius:var(--radius);padding:16px;margin-top:10px;border:1px solid var(--border)">';
+  ch+='<div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px">PRIORITY BREAKDOWN</div>';
+  [{label:"🔴 High",arr:high,color:"var(--red)"},{label:"🟡 Medium",arr:med,color:"var(--orange)"},{label:"🟢 Low",arr:low,color:"var(--green)"}].forEach(function(row){
+    if(!row.arr.length)return;
+    var d=row.arr.filter(function(t){return t.done;}).length;
+    var p=Math.round(d/row.arr.length*100);
+    ch+='<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:12px;font-weight:600;color:var(--text)">'+row.label+'</span><span style="font-size:12px;color:'+row.color+';font-weight:700">'+d+'/'+row.arr.length+'</span></div>';
+    ch+='<div style="background:var(--surface2);border-radius:30px;height:6px"><div style="width:'+p+'%;background:'+row.color+';height:6px;border-radius:30px"></div></div></div>';
+  });
+  ch+='</div>';
+  chartBox.innerHTML=ch;
 }
 function addTask(){
-  const inp=document.getElementById("newTask");
-  const sel=document.getElementById("taskPriority");
-  if(!inp)return;
-  const txt=inp.value.trim();
-  const pri=sel?sel.value:"medium";
-  if(!txt)return;
-  state.tasks.push({id:Date.now(),text:txt,done:false,priority:pri});
+  var inp=document.getElementById("taskInput");
+  var timeInp=document.getElementById("taskTime");
+  var priInp=document.getElementById("taskPriority");
+  if(!inp||!inp.value.trim())return;
+  var taskTime=timeInp?timeInp.value:"";
+  var priority=priInp?priInp.value:"high";
+  var slot="";
+  if(taskTime){
+    var hr=parseInt(taskTime.split(":")[0]);
+    if(hr>=5&&hr<12)slot="morning";
+    else if(hr>=12&&hr<17)slot="afternoon";
+    else slot="evening";
+  }
+  if(!state.tasks)state.tasks=[];
+  state.tasks.push({id:Date.now(),text:inp.value.trim(),done:false,priority:priority,slot:slot,time:taskTime});
   inp.value="";
-  persist();renderTasks();renderStats();
+  if(timeInp)timeInp.value="";
+  persist();renderTasks();renderDashboard();
 }
 function toggleTask(id){state.tasks=state.tasks.map(t=>t.id===id?{...t,done:!t.done}:t);persist();renderTasks();renderStats();}
 function deleteTask(id){state.tasks=state.tasks.filter(t=>t.id!==id);persist();renderTasks();renderStats();}
@@ -3714,12 +3767,9 @@ function renderAll(){
   else if(t==="Workout")renderWorkout();
   else if(t==="Beauty")safeRender("beautyContent",renderBeauty);
   else if(t==="Reading")safeRender("bookList",renderBooks);
-  else if(t==="Journal")safeRender("journalContent",renderJournal);
-  else if(t==="Schedule")renderSchedule();
   else if(t==="Records")renderRecords();
   else if(t==="Goals")safeRender("goalsContent",renderGoalsUnified);
   else if(t==="Mindset")safeRender("mindsetContent",renderMindset);
-  else if(t==="Gratitude")safeRender("gratitudeStandaloneContent",renderGratitudeStandalone);
   else if(t==="Habits")safeRender("habitsContent",renderHabits);
   else if(t==="Sleep")safeRender("sleepContent",renderSleep);
   else if(t==="Finance")safeRender("financeContent",renderFinance);
