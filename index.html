@@ -109,7 +109,7 @@ var SK=["tasks","finance","financeGoal","savingsJars","budgetLimits","financeMon
   "goals","goalsPeriod","books","articles","quotes","readingTab",
   "habits","habitLogs","sleep","skin","hair","meals","water",
   "calorieGoal","waterGoal","workouts","mindset","networth",
-  "appUsage","calendarDay","dayView","editingGoal","openGroups"];
+  "appUsage","calendarDay","dayView","editingGoal","openGroups","recurringTasks"];
 
 function saveState(){
   SK.forEach(function(k){
@@ -347,6 +347,7 @@ function addWater(n){
 function renderDash(){
   var box=document.getElementById("dashC");if(!box)return;
   refreshToday();
+  injectRecurring();
   var hr=new Date().getHours();
   var gr=hr<12?"Good Morning ☀️":hr<17?"Good Afternoon 👋":"Good Evening 🌙";
   var ds=new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
@@ -436,14 +437,45 @@ function renderDash(){
   box.innerHTML=html;
 }
 var _nts="";
+function injectRecurring(){
+  // Add recurring tasks that haven't been added today yet
+  var rec=state.recurringTasks||[];
+  if(!rec.length)return;
+  if(!state.tasks)state.tasks=[];
+  rec.forEach(function(r){
+    // Check if this recurring task already exists for today
+    var exists=state.tasks.some(function(t){return t.recurId===r.id&&t.date===today;});
+    if(!exists){
+      state.tasks.push({id:"t"+Date.now()+""+Math.random().toString(36).slice(2),text:r.text,done:false,priority:r.priority||"medium",slot:r.slot||"",time:r.time||"",endTime:r.endTime||"",date:today,recurId:r.id});
+    }
+  });
+}
+
 function renderTasks(){
   var box=document.getElementById("tasksC");if(!box)return;
+  injectRecurring();
   var tasks=state.tasks||[];
   var dn=tasks.filter(function(t){return t.done;}).length;
   var tot=tasks.length;
   var pct=tot?Math.round(dn/tot*100):0;
   var dv=state.dayView||"list";
   var html="";
+  // Show recurring tasks list
+  var recs=state.recurringTasks||[];
+  var recHTML="";
+  if(recs.length){
+    recHTML+='<div style="margin-top:8px"><div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">🔁 DAILY RECURRING</div>';
+    recs.forEach(function(r){
+      var pc={high:"var(--red)",medium:"var(--orange)",low:"var(--green)"}[r.priority]||"var(--border2)";
+      recHTML+='<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface2);border-radius:8px;margin-bottom:5px;border-left:3px solid '+pc+'">';
+      recHTML+='<span style="font-size:13px;flex:1;color:var(--text2)">'+r.text+'</span>';
+      recHTML+='<span style="font-size:10px;color:var(--text3)">Daily</span>';
+      recHTML+='<button data-rid="'+r.id+'" onclick="deleteRecurring(this.dataset.rid)" style="background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;padding:2px 4px">×</button>';
+      recHTML+='</div>';
+    });
+    recHTML+='</div>';
+  }
+
   html+='<div class="card">';
   html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
   html+='<div style="font-size:15px;font-weight:700">📋 My Day</div>';
@@ -452,18 +484,15 @@ function renderTasks(){
   html+='<button onclick="setDV(\'cal\')" style="padding:5px 10px;border-radius:7px;border:none;font-size:11px;font-weight:700;cursor:pointer;background:'+(dv==="cal"?"var(--primary)":"transparent")+';color:'+(dv==="cal"?"#fff":"var(--text3)")+'">📅 Week</button>';
   html+='</div></div>';
   html+='<input id="tInp" class="inp" placeholder="Add to my day..." style="margin-bottom:8px" onkeydown="if(event.keyCode===13)addTask()">';
-  html+='<div style="display:flex;gap:5px;margin-bottom:8px">';
-  ["morning","afternoon","evening"].forEach(function(sl){
-    var lbl=sl==="morning"?"☀️ Morning":sl==="afternoon"?"🌤 Afternoon":"🌙 Evening";
-    var on=_nts===sl;
-    html+='<button data-sl="'+sl+'" onclick="setSlot(this.dataset.sl)" style="flex:1;padding:6px 0;border-radius:9px;border:1.5px solid '+(on?"var(--primary)":"var(--border)")+';background:'+(on?"rgba(124,58,237,0.2)":"var(--surface2)")+';color:'+(on?"var(--pl)":"var(--text2)")+';font-size:10px;font-weight:600;cursor:pointer">'+lbl+'</button>';
-  });
-  html+='</div>';
   html+='<div style="display:flex;gap:8px;margin-bottom:10px">';
-  html+='<input id="tTime" class="inp" type="time" style="flex:1">';
-  html+='<select id="tPri" class="inp" style="flex:1"><option value="high">🔴 High</option><option value="medium">🟡 Medium</option><option value="low">🟢 Low</option></select>';
+  html+='<div style="flex:1"><div style="font-size:10px;color:var(--text3);margin-bottom:4px">Start time</div><input id="tTime" class="inp" type="time"></div>';
+  html+='<div style="flex:1"><div style="font-size:10px;color:var(--text3);margin-bottom:4px">End time</div><input id="tEndTime" class="inp" type="time"></div>';
   html+='</div>';
+  html+='<div style="margin-bottom:10px"><div style="font-size:10px;color:var(--text3);margin-bottom:4px">Priority</div>';
+  html+='<select id="tPri" class="inp"><option value="high">🔴 High</option><option value="medium">🟡 Medium</option><option value="low">🟢 Low</option></select></div>';
   html+='<button onclick="addTask()" class="btn btnp">+ Add to My Day</button>';
+  html+='<button onclick="addTask(true)" style="width:100%;margin-top:6px;padding:11px 0;border-radius:var(--rs);border:1.5px solid var(--primary);background:transparent;color:var(--pl);font-size:14px;font-weight:700;cursor:pointer">🔁 Add as Recurring (Daily)</button>';
+  html+='<div id="recList" style="margin-top:0">'+recHTML+'</div>';
   html+='</div>';
   if(tot){
     html+='<div class="csm" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:12px;color:var(--text3)">'+dn+'/'+tot+' done</span><span style="font-size:12px;font-weight:700;color:var(--pl)">'+pct+'%</span></div><div class="prog"><div class="pf" style="width:'+pct+'%;background:'+(pct===100?"var(--green)":"var(--primary)")+'"></div></div></div>';
@@ -497,15 +526,31 @@ function renderTasks(){
 function setDV(v){state.dayView=v;renderTasks();}
 function setSlot(sl){_nts=_nts===sl?"":sl;renderTasks();}
 
-function addTask(){
-  var i=document.getElementById("tInp");var ti=document.getElementById("tTime");var pi=document.getElementById("tPri");
+function addTask(recurring){
+  var i=document.getElementById("tInp");var ti=document.getElementById("tTime");var tei=document.getElementById("tEndTime");var pi=document.getElementById("tPri");
   if(!i||!i.value.trim())return;
-  var t=i.value.trim();var time=ti?ti.value:"";var pri=pi?pi.value:"high";var sl=_nts;
-  if(time&&!sl){var hr=parseInt(time.split(":")[0]);if(hr>=5&&hr<12)sl="morning";else if(hr>=12&&hr<17)sl="afternoon";else sl="evening";}
-  if(!state.tasks)state.tasks=[];
-  state.tasks.push({id:"t"+Date.now(),text:t,done:false,priority:pri,slot:sl,time:time,date:today});
-  i.value="";if(ti)ti.value="";_nts="";
+  var t=i.value.trim();var time=ti?ti.value:"";var endTime=tei?tei.value:"";var pri=pi?pi.value:"high";
+  // Auto slot from time
+  var sl="";
+  if(time){var hr=parseInt(time.split(":")[0]);if(hr>=5&&hr<12)sl="morning";else if(hr>=12&&hr<17)sl="afternoon";else sl="evening";}
+  if(recurring){
+    if(!state.recurringTasks)state.recurringTasks=[];
+    var rid="r"+Date.now();
+    state.recurringTasks.push({id:rid,text:t,priority:pri,slot:sl,time:time,endTime:endTime});
+    if(!state.tasks)state.tasks=[];
+    state.tasks.push({id:"t"+Date.now(),text:t,done:false,priority:pri,slot:sl,time:time,endTime:endTime,date:today,recurId:rid});
+    showToast("🔁 Added as daily recurring!");
+  } else {
+    if(!state.tasks)state.tasks=[];
+    state.tasks.push({id:"t"+Date.now(),text:t,done:false,priority:pri,slot:sl,time:time,endTime:endTime,date:today});
+  }
+  i.value="";if(ti)ti.value="";if(tei)tei.value="";
   persist();renderTasks();renderDash();
+}
+
+function deleteRecurring(id){
+  state.recurringTasks=(state.recurringTasks||[]).filter(function(r){return r.id!==id;});
+  persist();renderTasks();
 }
 function toggleTask(id){
   (state.tasks||[]).forEach(function(t){if(t.id===id)t.done=!t.done;});
@@ -554,7 +599,7 @@ function renderCalView(){
       var pc=PC[t.priority]||"var(--primary)";
       html+='<div class="tlev" style="background:'+pc+'22;border-left-color:'+pc+'">';
       html+='<button data-tid="'+t.id+'" onclick="toggleTask(this.dataset.tid)" style="width:16px;height:16px;border-radius:4px;border:1.5px solid '+pc+';background:'+(t.done?pc:"transparent")+';color:#fff;font-size:9px;cursor:pointer;flex-shrink:0">'+(t.done?"✓":"")+'</button>';
-      html+='<span style="font-size:13px;flex:1;text-decoration:'+(t.done?"line-through":"none")+'">'+t.text+'</span>';
+      html+='<div style="flex:1"><div style="font-size:13px;text-decoration:'+(t.done?"line-through":"none")+'">'+t.text+'</div>'+(t.endTime?'<div style="font-size:10px;color:rgba(255,255,255,0.5)">until '+t.endTime+'</div>':'')+'</div>';
       html+='<button data-tid="'+t.id+'" onclick="deleteTask(this.dataset.tid)" style="background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer">×</button>';
       html+='</div>';
     });
