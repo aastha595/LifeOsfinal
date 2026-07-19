@@ -231,16 +231,6 @@
     <div id="beautyHistory"></div>
   </div>
 
-    <div class="card">
-      <div style="font-size:13px;color:var(--text2);margin-bottom:8px">How are you feeling today?</div>
-      <div id="moodPicker" style="display:flex;gap:8px;margin-bottom:12px"></div>
-      <textarea id="journalText" class="input" placeholder="Write about your day..." rows="3" style="resize:none;margin-bottom:8px"></textarea>
-      <button class="btn-wide" onclick="addJournalEntry()">Save Entry</button>
-    </div>
-    <div id="journalList"></div>
-  </div>
-
-    <div id="scheduleList"></div>
   </div>
 
 
@@ -658,7 +648,7 @@ function switchTab(id){
   if(sec)sec.classList.add("active");
   // Clear content so renderAll always re-renders fresh on tab switch
   var contentIds=["dashboardContent","financeContent","habitsContent","sleepContent","mindsetContent",
-    "gratitudeStandaloneContent","goalsContent","bookList","journalContent",
+    "gratitudeStandaloneContent","goalsContent","bookList",
     "beautyContent","moodChartContent"];
   contentIds.forEach(function(cid){
     var el=document.getElementById(cid);
@@ -1755,7 +1745,7 @@ function renderGratitude(){
     <input id="g3" class="input" placeholder="3. I am grateful for..." style="margin-bottom:14px" value="${(todayG?todayG.items:undefined)?.[2]||""}">
     
     <div style="font-size:12px;font-weight:600;color:var(--primary-light);margin-bottom:8px">Free write (optional)</div>
-    <textarea id="gNote" class="input" placeholder="What made today special? What are you looking forward to?..." rows="3" style="resize:none;margin-bottom:12px">${(todayG?todayG.note:undefined)||""}</textarea>
+    
     
     <button class="btn-wide" onclick="saveGratitude()">🙏 Save Gratitude</button>
     ${todayG?'<div style="margin-top:8px;text-align:center;font-size:12px;color:var(--green)">✓ Saved today!</div>':""}
